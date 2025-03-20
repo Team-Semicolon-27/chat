@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 export default function Chat() {
-  const [room, setRoom] = useState("");
-  const [username, setUsername] = useState("");
+  const [notionId, setNotionId] = useState(""); // Room ID
+  const [sender, setSender] = useState(""); // Username
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const socketRef = useRef(null);
@@ -22,14 +22,19 @@ export default function Chat() {
   }, []);
 
   const joinRoom = () => {
-    if (room && username) {
-      socketRef.current.emit("joinRoom", room);
+    if (notionId && sender) {
+      socketRef.current.emit("joinRoom", notionId);
+      console.log(`User ${sender} joined room ${notionId}`);
     }
   };
 
   const sendMessage = () => {
-    if (message.trim() && room) {
-      socketRef.current.emit("sendMessage", { room, username, message });
+    if (message.trim() && notionId && sender) {
+      socketRef.current.emit("sendMessage", {
+        notionId,
+        sender,
+        message,
+      });
       setMessage("");
     }
   };
@@ -39,23 +44,25 @@ export default function Chat() {
       <input
         type="text"
         placeholder="Enter your name"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        value={sender}
+        onChange={(e) => setSender(e.target.value)}
       />
       <input
         type="text"
-        placeholder="Room ID"
-        value={room}
-        onChange={(e) => setRoom(e.target.value)}
+        placeholder="Notion ID (Room ID)"
+        value={notionId}
+        onChange={(e) => setNotionId(e.target.value)}
       />
       <button onClick={joinRoom}>Join Room</button>
+
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className="message">
-            <strong>{msg.username}: </strong> {msg.message}
+            <strong>{msg.sender}: </strong> {msg.content}
           </div>
         ))}
       </div>
+
       <input
         type="text"
         placeholder="Type a message"
